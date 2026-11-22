@@ -12,14 +12,14 @@ class IosBackgroundGameTimer : BackgroundGameTimer {
             locationManager.allowsBackgroundLocationUpdates = true
             locationManager.pausesLocationUpdatesAutomatically = false
             locationManager.startUpdatingLocation()
-        } catch (_: Exception) {}
+        } catch (e: Exception) {}
     }
 
     override fun stop() {
         try {
             locationManager.allowsBackgroundLocationUpdates = false
             locationManager.stopUpdatingLocation()
-        } catch (_: Exception) {}
+        } catch (e: Exception) {}
     }
 
     override fun updateNotification(text: String) {

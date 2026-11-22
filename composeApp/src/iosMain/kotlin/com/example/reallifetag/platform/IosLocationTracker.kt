@@ -35,7 +35,7 @@ class IosLocationTracker : NSObject(), CLLocationManagerDelegateProtocol, Locati
             locationManager.allowsBackgroundLocationUpdates = true
             locationManager.pausesLocationUpdatesAutomatically = false
             locationManager.showsBackgroundLocationIndicator = true
-        } catch (_: Exception) {}
+        } catch (e: Exception) {}
     }
 
     override fun requestPermission() {

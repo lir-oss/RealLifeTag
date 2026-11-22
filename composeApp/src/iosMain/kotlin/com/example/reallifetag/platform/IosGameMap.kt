@@ -44,11 +44,11 @@ class IosMapDelegate : NSObject(), MKMapViewDelegateProtocol {
         view.annotation = annotation
         val title = annotation.title ?: ""
         if (title.contains("(You)")) {
-            view.markerTintColor = UIColor(red = 0.16, green = 0.71, blue = 0.96, alpha = 1.0)
+            view.markerTintColor = UIColor.colorWithRed(0.16, 0.71, 0.96, 1.0)
         } else if (title.contains("Teammate")) {
-            view.markerTintColor = UIColor(red = 0.0, green = 0.9, blue = 0.46, alpha = 1.0)
+            view.markerTintColor = UIColor.colorWithRed(0.0, 0.9, 0.46, 1.0)
         } else {
-            view.markerTintColor = UIColor(red = 1.0, green = 0.32, blue = 0.32, alpha = 1.0)
+            view.markerTintColor = UIColor.colorWithRed(1.0, 0.32, 0.32, 1.0)
         }
         return view
     }
@@ -121,9 +121,9 @@ actual fun GameMap(
                     if (showMarker) {
                         val pos = if (isYou || p.role == Role.HUNTER || p.isLiveExposed) p.latLng else (p.lastPingLocation ?: p.latLng)
                         val annotation = MKPointAnnotation().apply {
-                            setCoordinate(CLLocationCoordinate2DMake(pos.latitude, pos.longitude))
-                            setTitle(if (isYou) "${p.name} (You)" else "${p.name} (${if (isTeammate) "Teammate" else "Enemy"})")
-                            setSubtitle(if (isYou) "Your Live Location" else if (isTeammate) "Teammate Location" else "Last Known Location")
+                            coordinate = CLLocationCoordinate2DMake(pos.latitude, pos.longitude)
+                            title = if (isYou) "${p.name} (You)" else "${p.name} (${if (isTeammate) "Teammate" else "Enemy"})"
+                            subtitle = if (isYou) "Your Live Location" else if (isTeammate) "Teammate Location" else "Last Known Location"
                         }
                         mapView.addAnnotation(annotation)
                     }
