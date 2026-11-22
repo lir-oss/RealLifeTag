@@ -8,19 +8,9 @@ import com.example.reallifetag.model.LatLng
 import com.example.reallifetag.model.Player
 import com.example.reallifetag.model.Role
 import kotlinx.cinterop.ExperimentalForeignApi
-import platform.CoreLocation.CLLocationCoordinate2DMake
-import platform.MapKit.MKAnnotationProtocol
-import platform.MapKit.MKAnnotationView
-import platform.MapKit.MKCircle
-import platform.MapKit.MKCircleRenderer
-import platform.MapKit.MKMapCamera
-import platform.MapKit.MKMapView
-import platform.MapKit.MKMapViewDelegateProtocol
-import platform.MapKit.MKMarkerAnnotationView
-import platform.MapKit.MKOverlayProtocol
-import platform.MapKit.MKOverlayRenderer
-import platform.MapKit.MKPointAnnotation
-import platform.UIKit.UIColor
+import platform.CoreLocation.*
+import platform.MapKit.*
+import platform.UIKit.*
 import platform.darwin.NSObject
 
 class IosMapDelegate : NSObject(), MKMapViewDelegateProtocol {
@@ -121,9 +111,9 @@ actual fun GameMap(
                     if (showMarker) {
                         val pos = if (isYou || p.role == Role.HUNTER || p.isLiveExposed) p.latLng else (p.lastPingLocation ?: p.latLng)
                         val annotation = MKPointAnnotation().apply {
-                            coordinate = CLLocationCoordinate2DMake(pos.latitude, pos.longitude)
-                            title = if (isYou) "${p.name} (You)" else "${p.name} (${if (isTeammate) "Teammate" else "Enemy"})"
-                            subtitle = if (isYou) "Your Live Location" else if (isTeammate) "Teammate Location" else "Last Known Location"
+                            setCoordinate(CLLocationCoordinate2DMake(pos.latitude, pos.longitude))
+                            setTitle(if (isYou) "${p.name} (You)" else "${p.name} (${if (isTeammate) "Teammate" else "Enemy"})")
+                            setSubtitle(if (isYou) "Your Live Location" else if (isTeammate) "Teammate Location" else "Last Known Location")
                         }
                         mapView.addAnnotation(annotation)
                     }
