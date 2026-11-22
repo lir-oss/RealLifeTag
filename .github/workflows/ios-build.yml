@@ -27,7 +27,23 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Compile Kotlin iOS Framework
-        run: ./gradlew :composeApp:linkDebugFrameworkIosSimulatorArm64
+        id: compile
+        run: |
+          ./gradlew :composeApp:linkDebugFrameworkIosSimulatorArm64 --stacktrace --no-daemon 2>&1 | tee build.log
+        continue-on-error: true
+
+      - name: Display Compiler Errors in Summary
+        if: always()
+        run: |
+          echo "## Build Log Output" >> $GITHUB_STEP_SUMMARY
+          echo '```text' >> $GITHUB_STEP_SUMMARY
+          if [ -f build.log ]; then
+            grep -E "(e:|error:|FAILURE|Exception|Compilation failed)" -B 2 -A 6 build.log | head -n 80 >> $GITHUB_STEP_SUMMARY
+          fi
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          if [ "${{ steps.compile.outcome }}" != "success" ]; then
+            exit 1
+          fi
 
       - name: Build Xcode Project
         run: |
@@ -41,4 +57,5 @@ jobs:
           path: |
             iosApp/build/Build/Products/Debug-iphonesimulator/iosApp.app
             composeApp/build/bin/iosSimulatorArm64/debugFramework/
+            build.log
           if-no-files-found: ignore
