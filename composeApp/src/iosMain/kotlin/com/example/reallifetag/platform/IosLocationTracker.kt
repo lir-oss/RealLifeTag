@@ -9,32 +9,41 @@ import kotlinx.cinterop.useContents
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import platform.CoreLocation.CLAuthorizationStatus
-import platform.CoreLocation.CLLocation
-import platform.CoreLocation.CLLocationManager
-import platform.CoreLocation.CLLocationManagerDelegateProtocol
-import platform.CoreLocation.kCLAuthorizationStatusAuthorizedAlways
-import platform.CoreLocation.kCLAuthorizationStatusAuthorizedWhenInUse
-import platform.CoreLocation.kCLLocationAccuracyBestForNavigation
+import platform.CoreLocation.*
 import platform.darwin.NSObject
 
-class IosLocationTracker : NSObject(), CLLocationManagerDelegateProtocol, LocationTracker {
-    private val locationManager = CLLocationManager()
-
+class IosLocationTracker : LocationTracker {
     private val _currentLocation = MutableStateFlow<LatLng?>(null)
     override val currentLocation: StateFlow<LatLng?> = _currentLocation.asStateFlow()
 
     private val _hasPermission = MutableStateFlow(isAuthorized(CLLocationManager.authorizationStatus()))
     override val hasPermission: StateFlow<Boolean> = _hasPermission.asStateFlow()
 
-    init {
-        locationManager.delegate = this
-        locationManager.desiredAccuracy = kCLLocationAccuracyBestForNavigation
+    private val delegate = object : NSObject(), CLLocationManagerDelegateProtocol {
+        @OptIn(ExperimentalForeignApi::class)
+        override fun locationManager(manager: CLLocationManager, didUpdateLocations: List<*>) {
+            val lastLocation = didUpdateLocations.lastOrNull() as? CLLocation ?: return
+            lastLocation.coordinate.useContents {
+                _currentLocation.value = LatLng(latitude, longitude)
+            }
+        }
+
+        override fun locationManager(manager: CLLocationManager, didChangeAuthorizationStatus: CLAuthorizationStatus) {
+            val granted = isAuthorized(didChangeAuthorizationStatus)
+            _hasPermission.value = granted
+            if (granted) {
+                manager.startUpdatingLocation()
+            }
+        }
+    }
+
+    private val locationManager = CLLocationManager().apply {
+        this.delegate = this@IosLocationTracker.delegate
+        this.desiredAccuracy = kCLLocationAccuracyBestForNavigation
         try {
-            // Allows location updates to continue even when phone is locked / screen is off
-            locationManager.allowsBackgroundLocationUpdates = true
-            locationManager.pausesLocationUpdatesAutomatically = false
-            locationManager.showsBackgroundLocationIndicator = true
+            this.allowsBackgroundLocationUpdates = true
+            this.pausesLocationUpdatesAutomatically = false
+            this.showsBackgroundLocationIndicator = true
         } catch (e: Exception) {}
     }
 
@@ -48,22 +57,6 @@ class IosLocationTracker : NSObject(), CLLocationManagerDelegateProtocol, Locati
 
     override fun stopTracking() {
         locationManager.stopUpdatingLocation()
-    }
-
-    @OptIn(ExperimentalForeignApi::class)
-    override fun locationManager(manager: CLLocationManager, didUpdateLocations: List<*>) {
-        val lastLocation = didUpdateLocations.lastOrNull() as? CLLocation ?: return
-        lastLocation.coordinate.useContents {
-            _currentLocation.value = LatLng(latitude, longitude)
-        }
-    }
-
-    override fun locationManager(manager: CLLocationManager, didChangeAuthorizationStatus: CLAuthorizationStatus) {
-        val granted = isAuthorized(didChangeAuthorizationStatus)
-        _hasPermission.value = granted
-        if (granted) {
-            locationManager.startUpdatingLocation()
-        }
     }
 
     companion object {

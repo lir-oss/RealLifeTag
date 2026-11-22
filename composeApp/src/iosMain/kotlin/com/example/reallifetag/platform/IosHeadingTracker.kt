@@ -6,19 +6,26 @@ import androidx.compose.runtime.remember
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import platform.CoreLocation.CLHeading
-import platform.CoreLocation.CLLocationManager
-import platform.CoreLocation.CLLocationManagerDelegateProtocol
+import platform.CoreLocation.*
 import platform.darwin.NSObject
 
-class IosHeadingTracker : NSObject(), CLLocationManagerDelegateProtocol, HeadingTracker {
-    private val locationManager = CLLocationManager()
-
+class IosHeadingTracker : HeadingTracker {
     private val _headingDegrees = MutableStateFlow(0f)
     override val headingDegrees: StateFlow<Float> = _headingDegrees.asStateFlow()
 
-    init {
-        locationManager.delegate = this
+    private val delegate = object : NSObject(), CLLocationManagerDelegateProtocol {
+        override fun locationManager(manager: CLLocationManager, didUpdateHeading: CLHeading) {
+            val degrees = if (didUpdateHeading.trueHeading >= 0) {
+                didUpdateHeading.trueHeading.toFloat()
+            } else {
+                didUpdateHeading.magneticHeading.toFloat()
+            }
+            _headingDegrees.value = (degrees + 360f) % 360f
+        }
+    }
+
+    private val locationManager = CLLocationManager().apply {
+        this.delegate = this@IosHeadingTracker.delegate
     }
 
     override fun start() {
@@ -29,15 +36,6 @@ class IosHeadingTracker : NSObject(), CLLocationManagerDelegateProtocol, Heading
 
     override fun stop() {
         locationManager.stopUpdatingHeading()
-    }
-
-    override fun locationManager(manager: CLLocationManager, didUpdateHeading: CLHeading) {
-        val degrees = if (didUpdateHeading.trueHeading >= 0) {
-            didUpdateHeading.trueHeading.toFloat()
-        } else {
-            didUpdateHeading.magneticHeading.toFloat()
-        }
-        _headingDegrees.value = (degrees + 360f) % 360f
     }
 }
 
