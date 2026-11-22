@@ -26,19 +26,19 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x ./gradlew
 
-      - name: Build Shared Kotlin Framework
-        run: ./gradlew :composeApp:embedAndSignAppleFrameworkForXcode
+      - name: Compile Kotlin iOS Framework
+        run: ./gradlew :composeApp:linkDebugFrameworkIosSimulatorArm64
 
       - name: Build Xcode Project
         run: |
           cd iosApp
-          xcodebuild -project iosApp.xcodeproj -scheme iosApp -destination "generic/platform=iOS Simulator" -configuration Debug build CODE_SIGNING_ALLOWED=NO
+          xcodebuild -project iosApp.xcodeproj -scheme iosApp -destination "generic/platform=iOS Simulator" -configuration Debug build CODE_SIGNING_ALLOWED=NO -derivedDataPath build
 
       - name: Upload Build Output
         uses: actions/upload-artifact@v4
         with:
           name: ios-app-build
           path: |
-            composeApp/build/bin/iosSimulatorArm64/
+            iosApp/build/Build/Products/Debug-iphonesimulator/iosApp.app
+            composeApp/build/bin/iosSimulatorArm64/debugFramework/
           if-no-files-found: ignore
-
