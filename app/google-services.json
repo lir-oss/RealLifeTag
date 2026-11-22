@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "278676237940",
+    "project_id": "real-life-tag",
+    "storage_bucket": "real-life-tag.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:278676237940:android:b872c01181517d78a12b21",
+        "android_client_info": {
+          "package_name": "com.example.reallifetag"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAyIp_eaPQ7VJ5uvWQxPhUgoZaB7dvIGNY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
