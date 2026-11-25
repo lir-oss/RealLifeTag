@@ -26,10 +26,10 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x ./gradlew
 
-      - name: Compile Kotlin iOS Framework
+      - name: Compile Kotlin iOS Device Framework
         id: compile
         run: |
-          ./gradlew :composeApp:linkDebugFrameworkIosSimulatorArm64 --stacktrace --no-daemon 2>&1 | tee build.log
+          ./gradlew :composeApp:linkDebugFrameworkIosArm64 --stacktrace --no-daemon 2>&1 | tee build.log
         continue-on-error: true
 
       - name: Display Compiler Errors in Summary
@@ -45,17 +45,19 @@ jobs:
             exit 1
           fi
 
-      - name: Build Xcode Project
+      - name: Build Xcode Project for iPhone Device
         run: |
           cd iosApp
-          xcodebuild -project iosApp.xcodeproj -scheme iosApp -destination "generic/platform=iOS Simulator" -configuration Debug build CODE_SIGNING_ALLOWED=NO -derivedDataPath build
+          xcodebuild -project iosApp.xcodeproj -scheme iosApp -destination "generic/platform=iOS" -configuration Debug build CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" -derivedDataPath build
+          mkdir -p Payload
+          cp -r build/Build/Products/Debug-iphoneos/iosApp.app Payload/
+          zip -r RealLifeTag.ipa Payload
 
-      - name: Upload Build Output
+      - name: Upload RealLifeTag IPA
         uses: actions/upload-artifact@v4
         with:
-          name: ios-app-build
+          name: RealLifeTag-ipa
           path: |
-            iosApp/build/Build/Products/Debug-iphonesimulator/iosApp.app
-            composeApp/build/bin/iosSimulatorArm64/debugFramework/
+            iosApp/RealLifeTag.ipa
             build.log
           if-no-files-found: ignore
